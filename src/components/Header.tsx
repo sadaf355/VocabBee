@@ -1,13 +1,17 @@
 import { Button } from "@/components/ui/button";
-import { BookOpen, Menu, X } from "lucide-react";
+import { BookOpen, Menu, X, User as UserIcon } from "lucide-react";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { LoginModal } from "@/components/LoginModal";
 import { RegisterModal } from "@/components/RegisterModal";
+// Update the import path below to the correct relative path if your UserContext is in src/context/UserContext.tsx
+import { useUser } from "../context/UserContext";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user } = useUser();
+  const navigate = useNavigate();
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
@@ -36,26 +40,38 @@ const Header = () => {
           </a>
         </nav>
 
-        {/* Desktop CTA Buttons */}
-        <div className="hidden md:flex items-center gap-3">
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="outline">Sign In</Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
-              <LoginModal />
-            </DialogContent>
-          </Dialog>
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="default" className="bg-gradient-primary text-primary-foreground border-0 hover:bg-gradient-secondary">
-                Get Started
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
-              <RegisterModal />
-            </DialogContent>
-          </Dialog>
+        {/* Desktop CTA Buttons or User Info */}
+        <div className="hidden md:flex items-center gap-4">
+          {user ? (
+            <div
+              className="flex items-center gap-2 cursor-pointer"
+              onClick={() => navigate("/profile")}
+            >
+              <UserIcon className="w-6 h-6 text-primary" />
+              <span className="text-foreground">{user.username}</span>
+            </div>
+          ) : (
+            <>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="outline">Sign In</Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <LoginModal />
+                </DialogContent>
+              </Dialog>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="default" className="bg-gradient-primary text-primary-foreground border-0 hover:bg-gradient-secondary">
+                    Get Started
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <RegisterModal />
+                </DialogContent>
+              </Dialog>
+            </>
+          )}
         </div>
 
         {/* Mobile Menu Button */}
@@ -86,24 +102,40 @@ const Header = () => {
               Contact Us
             </a>
             <div className="flex flex-col gap-2 pt-4 border-t border-border">
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button variant="outline" className="w-full">Sign In</Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-md">
-                  <LoginModal />
-                </DialogContent>
-              </Dialog>
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button variant="default" className="w-full bg-gradient-primary text-primary-foreground">
-                    Get Started
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-md">
-                  <RegisterModal />
-                </DialogContent>
-              </Dialog>
+              {user ? (
+                <Button
+                  variant="ghost"
+                  className="w-full flex items-center gap-2 justify-center"
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    navigate("/profile");
+                  }}
+                >
+                  <UserIcon className="w-5 h-5 text-primary" />
+                  <span className="text-foreground">{user.username}</span>
+                </Button>
+              ) : (
+                <>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" className="w-full">Sign In</Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-md">
+                      <LoginModal />
+                    </DialogContent>
+                  </Dialog>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="default" className="w-full bg-gradient-primary text-primary-foreground">
+                        Get Started
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-md">
+                      <RegisterModal />
+                    </DialogContent>
+                  </Dialog>
+                </>
+              )}
             </div>
           </nav>
         </div>

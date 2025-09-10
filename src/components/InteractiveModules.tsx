@@ -1,7 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { BookOpen, Mic, MessageSquare, TrendingUp } from "lucide-react";
 import vocabeeLogo from "@/assets/vocabee-logo-new.png";
-import progressTrackingIcon from "@/assets/progress-tracking-icon.png";
 
 const modules = [
   {
@@ -23,7 +22,7 @@ const modules = [
     color: "bg-gradient-success"
   },
   {
-    customLogo: progressTrackingIcon,
+    icon: TrendingUp,
     title: "Progress Tracking",
     description: "Monitor your learning journey",
     color: "bg-gradient-accent"

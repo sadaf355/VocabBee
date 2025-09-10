@@ -1,21 +1,51 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { DialogHeader, DialogTitle, DialogTrigger, DialogContent, Dialog } from "@/components/ui/dialog";
+import { DialogHeader, DialogTitle, DialogContent, Dialog } from "@/components/ui/dialog";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { RegisterModal } from "@/components/RegisterModal";
+import { useUser } from "../context/UserContext";
 
 export const LoginModal = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showRegister, setShowRegister] = useState(false);
   const navigate = useNavigate();
+  const { login } = useUser();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simple demo login - in real app, this would validate credentials
-    if (email && password) {
-      navigate("/onboarding");
+    if (!email || !password) return;
+
+    try {
+      const res = await fetch("http://localhost:4000/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      let data: any = {};
+      if (res.headers.get("content-type")?.includes("application/json")) {
+        data = await res.json();
+      }
+
+      if (res.status === 404) {
+        alert("Not registered! Please register.");
+        setShowRegister(true);
+      } else if (res.status === 401) {
+        alert("Invalid credentials.");
+      } else if (res.ok) {
+        login(data.user);
+        // Navigate based on user status
+        if (!data.user.onboarded) navigate("/onboarding");
+        else if (!data.user.assessed) navigate("/assessment");
+        else navigate("/home");
+      } else {
+        alert(data.message || "Login failed.");
+      }
+    } catch {
+      alert("Network error. Please try again.");
     }
   };
 
@@ -27,10 +57,7 @@ export const LoginModal = () => {
         </DialogTitle>
       </DialogHeader>
 
-      <Button 
-        variant="outline" 
-        className="w-full bg-muted text-muted-foreground border-border hover:bg-accent"
-      >
+      <Button variant="outline" className="w-full bg-muted text-muted-foreground border-border hover:bg-accent">
         Continue with Google
       </Button>
 
@@ -70,27 +97,16 @@ export const LoginModal = () => {
           />
         </div>
 
-        <Button 
-          type="submit"
-          className="w-full bg-gradient-primary text-primary-foreground border-0 hover:bg-gradient-secondary"
-        >
+        <Button type="submit" className="w-full bg-gradient-primary text-primary-foreground border-0 hover:bg-gradient-secondary">
           Login
         </Button>
       </form>
 
-      <p className="text-center text-sm text-muted-foreground">
-        Not a user?{" "}
-        <Dialog>
-          <DialogTrigger asChild>
-            <span className="text-primary cursor-pointer hover:underline">
-              Register
-            </span>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
-            <RegisterModal />
-          </DialogContent>
-        </Dialog>
-      </p>
+      <Dialog open={showRegister} onOpenChange={setShowRegister}>
+        <DialogContent className="sm:max-w-md">
+          <RegisterModal />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

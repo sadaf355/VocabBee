@@ -1,16 +1,13 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { VocaBeeSidebar } from "@/components/VocaBeeSidebar";
-import { 
-  BookOpen, 
-  Trophy, 
-  Target, 
-  Clock, 
-  Play, 
+import {
+  BookOpen,
+  Target,
   MessageSquare,
+  Volume2,
   Headphones,
   Mic,
   Eye,
@@ -18,73 +15,59 @@ import {
   TrendingUp,
   Award,
   BarChart3,
-  Menu,
-  Volume2,
   User
 } from "lucide-react";
-import { Link } from "react-router-dom";
-import vocabeeLogo from "@/assets/vocabee-logo-white.png";
-import pronunciationPracticeIcon from "@/assets/pronunciation-practice-icon.png";
-import writingSkillsIcon from "@/assets/writing-skills-icon.png";
-import certificatesIcon from "@/assets/certificates-icon.png";
+import { Link, useNavigate } from "react-router-dom";
+import { useUser } from "../context/UserContext";
 
 const Dashboard = () => {
-  // Mock user data with quiz score
-  const userProgress = {
-    name: "John Doe",
-    level: "Intermediate",
-    quizScore: 78, // Score out of 100 from assessment
-    status: "Good Progress",
-    streakDays: 15,
-    modulesCompleted: 8,
-    totalModules: 24
-  };
+  const navigate = useNavigate();
+const { user } = useUser(); // get logged-in user
+
+const userProgress = {
+  name: user?.username || user?.email || "Guest", // display username from DB
+  level: "Intermediate",
+  quizScore: 78,
+  status: "Good Progress",
+  streakDays: 15,
+  modulesCompleted: 8,
+  totalModules: 24
+};
 
   const coreLearningModules = [
-    { title: "Grammar Essentials", description: "Master the fundamentals of English grammar", level: "All Levels", duration: "4 weeks", users: "2.5k", icon: BookOpen, color: "bg-gradient-primary" },
-    { title: "Professional Communication", description: "Learn business English and workplace communication", level: "Intermediate", duration: "6 weeks", users: "1.8k", icon: MessageSquare, color: "bg-gradient-secondary" },
-    { title: "Vocabulary Builder", description: "Expand your technical and professional vocabulary", level: "All Levels", duration: "Ongoing", users: "3.2k", icon: Target, color: "bg-gradient-success" },
-    { title: "Pronunciation Practice", description: "Perfect your pronunciation with AI-powered feedback", level: "All Levels", duration: "3 weeks", users: "1.9k", icon: Volume2, color: "bg-gradient-accent", customLogo: pronunciationPracticeIcon },
+    { title: "Grammar Essentials", description: "Master the fundamentals of English grammar", icon: BookOpen, color: "bg-gradient-primary" },
+    { title: "Professional Communication", description: "Learn business English and workplace communication", icon: MessageSquare, color: "bg-gradient-secondary" },
+    { title: "Vocabulary Builder", description: "Expand your technical and professional vocabulary", icon: Target, color: "bg-gradient-success" },
+    { title: "Resume/Email Writing", description: "Perfect your resume building and email writing skills", icon: Volume2, color: "bg-gradient-accent" },
   ];
 
   const lsrwSkills = [
-    { title: "Listening Skills", description: "Improve comprehension with audio exercises", levels: ["Basic", "Intermediate L1", "Intermediate L2", "+3 more"], icon: Headphones, color: "bg-gradient-primary", logo: false },
-    { title: "Speaking Skills", description: "Practice speaking with AI feedback", levels: ["Basic", "Intermediate L1", "Intermediate L2", "+3 more"], icon: Mic, color: "bg-gradient-secondary", logo: false },
-    { title: "Reading Skills", description: "Enhance reading comprehension", levels: ["Basic", "Intermediate L1", "Intermediate L2", "+3 more"], icon: Eye, color: "bg-gradient-success", logo: false },
-    { title: "Writing Skills", description: "Master professional writing", levels: ["Basic", "Intermediate L1", "Intermediate L2", "+3 more"], icon: Edit3, color: "bg-gradient-accent", customLogo: writingSkillsIcon }
+    { title: "Listening Skills", description: "Improve comprehension with audio exercises", icon: Headphones, color: "bg-gradient-primary" },
+    { title: "Speaking Skills", description: "Practice speaking with AI feedback", icon: Mic, color: "bg-gradient-secondary" },
+    { title: "Reading Skills", description: "Enhance reading comprehension", icon: Eye, color: "bg-gradient-success" },
+    { title: "Writing Skills", description: "Master professional writing", icon: Edit3, color: "bg-gradient-accent" }
   ];
 
   const quickActions = [
     { title: "FluencyBot", description: "Chat with AI tutor", icon: MessageSquare, color: "bg-gradient-primary" },
     { title: "Leaderboard", description: "See your ranking", icon: BarChart3, color: "bg-gradient-secondary" },
     { title: "Progress", description: "Track your improvement", icon: TrendingUp, color: "bg-gradient-success" },
-    { title: "Certificates", description: "View achievements", icon: Award, color: "bg-gradient-accent", customLogo: certificatesIcon }
-  ];
-
-  const recentModules = [
-    { title: "Grammar Essentials", progress: 85, status: "completed" },
-    { title: "Professional Communication", progress: 60, status: "in-progress" },
-    { title: "Vocabulary Builder", progress: 0, status: "locked" },
-    { title: "Pronunciation Practice", progress: 0, status: "locked" }
-  ];
-
-  const achievements = [
-    { title: "First Week", icon: Trophy, color: "text-secondary" },
-    { title: "Grammar Master", icon: BookOpen, color: "text-success" },
-    { title: "Streak Champion", icon: Target, color: "text-primary" }
+    { title: "Certificates", description: "View achievements", icon: Award, color: "bg-gradient-accent" }
   ];
 
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background">
         <VocaBeeSidebar />
-        
+
         <main className="flex-1">
           {/* Header */}
           <header className="h-16 border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
             <div className="container mx-auto px-4 h-full flex items-center justify-between">
               <SidebarTrigger className="p-2" />
-              <div className="flex items-center gap-3">
+
+              {/* User Info */}
+              <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate("/profile")}>
                 <div className="w-8 h-8 bg-gradient-primary rounded-full flex items-center justify-center">
                   <User className="w-4 h-4 text-white" />
                 </div>
@@ -118,30 +101,19 @@ const Dashboard = () => {
                   <Card key={index} className="group hover:shadow-card transition-all duration-300 hover:-translate-y-1">
                     <CardContent className="p-6">
                       <div className={`w-12 h-12 rounded-xl ${module.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-                        {(module as any).customLogo ? (
-                          <img src={(module as any).customLogo} alt={module.title} className="w-6 h-6" />
-                        ) : (
-                          <module.icon className="w-6 h-6 text-white" />
-                        )}
+                        <module.icon className="w-6 h-6 text-white" />
                       </div>
                       <h3 className="font-semibold text-foreground mb-2">{module.title}</h3>
                       <p className="text-sm text-muted-foreground mb-4">{module.description}</p>
-                      <div className="space-y-2 text-xs text-muted-foreground">
-                        <div>Level: <span className="text-foreground">{module.level}</span></div>
-                        <div className="flex items-center gap-4">
-                          <span>⏱ {module.duration}</span>
-                          <span>👥 {module.users}</span>
-                        </div>
-                      </div>
                       <Link to={
                         module.title === "Grammar Essentials" ? "/modules/grammar-levels" :
                         module.title === "Vocabulary Builder" ? "/modules/vocabulary-levels" :
                         module.title === "Professional Communication" ? "/modules/communication-levels" :
-                        module.title === "Pronunciation Practice" ? "/modules/pronunciation-levels" : "#"
+                        "#"
                       }>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
+                        <Button
+                          variant="outline"
+                          size="sm"
                           className="w-full mt-4 bg-primary/5 text-primary border-primary/20 hover:bg-primary hover:text-primary-foreground"
                         >
                           Start Module →
@@ -161,54 +133,24 @@ const Dashboard = () => {
                   <Card key={index} className="group hover:shadow-card transition-all duration-300 hover:-translate-y-1">
                     <CardContent className="p-6">
                       <div className={`w-12 h-12 rounded-xl ${skill.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-                        {(skill as any).customLogo ? (
-                          <img src={(skill as any).customLogo} alt={skill.title} className="w-6 h-6" />
-                        ) : (
-                          <skill.icon className="w-6 h-6 text-white" />
-                        )}
+                        <skill.icon className="w-6 h-6 text-white" />
                       </div>
                       <h3 className="font-semibold text-foreground mb-2">{skill.title}</h3>
                       <p className="text-sm text-muted-foreground mb-4">{skill.description}</p>
-                      <div className="mb-4">
-                        <p className="text-xs text-muted-foreground mb-2">Available Levels:</p>
-                        <div className="flex flex-wrap gap-1">
-                          {skill.levels.map((level, levelIndex) => (
-                            <Badge 
-                              key={levelIndex}
-                              variant="outline" 
-                              className="text-xs border-border bg-muted/50"
-                            >
-                              {level}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
                       {skill.title === "Listening Skills" ? (
                         <Link to="/lsrw/listening-levels">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="w-full bg-primary/5 text-primary border-primary/20 hover:bg-primary hover:text-primary-foreground"
-                          >
+                          <Button variant="outline" size="sm" className="w-full bg-primary/5 text-primary border-primary/20 hover:bg-primary hover:text-primary-foreground">
                             Explore Levels →
                           </Button>
                         </Link>
                       ) : skill.title === "Reading Skills" ? (
                         <Link to="/lsrw/reading-levels">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="w-full bg-primary/5 text-primary border-primary/20 hover:bg-primary hover:text-primary-foreground"
-                          >
+                          <Button variant="outline" size="sm" className="w-full bg-primary/5 text-primary border-primary/20 hover:bg-primary hover:text-primary-foreground">
                             Explore Levels →
                           </Button>
                         </Link>
                       ) : (
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="w-full bg-primary/5 text-primary border-primary/20 hover:bg-primary hover:text-primary-foreground"
-                        >
+                        <Button variant="outline" size="sm" className="w-full bg-primary/5 text-primary border-primary/20 hover:bg-primary hover:text-primary-foreground">
                           Explore Levels →
                         </Button>
                       )}
@@ -227,11 +169,7 @@ const Dashboard = () => {
                   <Card key={index} className="group hover:shadow-card transition-all duration-300 hover:-translate-y-1 cursor-pointer">
                     <CardContent className="p-6 text-center">
                       <div className={`w-12 h-12 rounded-xl ${action.color} flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform`}>
-                        {(action as any).customLogo ? (
-                          <img src={(action as any).customLogo} alt={action.title} className="w-6 h-6" />
-                        ) : (
-                          <action.icon className="w-6 h-6 text-white" />
-                        )}
+                        <action.icon className="w-6 h-6 text-white" />
                       </div>
                       <h3 className="font-semibold text-foreground mb-2">{action.title}</h3>
                       <p className="text-sm text-muted-foreground">{action.description}</p>
@@ -240,7 +178,6 @@ const Dashboard = () => {
                 ))}
               </div>
             </section>
-
           </div>
         </main>
       </div>

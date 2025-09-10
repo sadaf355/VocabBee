@@ -3,20 +3,39 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DialogHeader, DialogTitle, DialogTrigger, DialogContent, Dialog } from "@/components/ui/dialog";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { LoginModal } from "@/components/LoginModal";
 
 export const RegisterModal = () => {
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const navigate = useNavigate();
+  const [showLogin, setShowLogin] = useState(false);
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simple demo registration - in real app, this would create account
     if (email && username && password) {
-      navigate("/onboarding");
+      try {
+        const res = await fetch("http://localhost:4000/api/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, username, password }),
+        });
+        let data = {};
+        if (res.headers.get("content-type")?.includes("application/json")) {
+          data = await res.json();
+        }
+        if (res.status === 409) {
+          alert("Already registered! Please login.");
+          setShowLogin(true);
+        } else if (res.ok) {
+          alert("Registered successfully! Please login.");
+          setShowLogin(true);
+        } else {
+          alert((data as any).message || "Registration failed.");
+        }
+      } catch (err) {
+        alert("Network error. Please try again.");
+      }
     }
   };
 
@@ -27,23 +46,6 @@ export const RegisterModal = () => {
           Join VocaBee
         </DialogTitle>
       </DialogHeader>
-
-      <Button 
-        variant="outline" 
-        className="w-full bg-muted text-muted-foreground border-border hover:bg-accent"
-      >
-        Continue with Google
-      </Button>
-
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-border" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-muted-foreground">OR</span>
-        </div>
-      </div>
-
       <form onSubmit={handleRegister} className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="email" className="text-foreground">Email</Label>
@@ -57,7 +59,6 @@ export const RegisterModal = () => {
             required
           />
         </div>
-
         <div className="space-y-2">
           <Label htmlFor="username" className="text-foreground">Username</Label>
           <Input
@@ -70,7 +71,6 @@ export const RegisterModal = () => {
             required
           />
         </div>
-
         <div className="space-y-2">
           <Label htmlFor="password" className="text-foreground">Password</Label>
           <Input
@@ -83,28 +83,18 @@ export const RegisterModal = () => {
             required
           />
         </div>
-
-        <Button 
+        <Button
           type="submit"
           className="w-full bg-gradient-primary text-primary-foreground border-0 hover:bg-gradient-secondary"
         >
           Register
         </Button>
       </form>
-
-      <p className="text-center text-sm text-muted-foreground">
-        Already registered?{" "}
-        <Dialog>
-          <DialogTrigger asChild>
-            <span className="text-primary cursor-pointer hover:underline">
-              Login
-            </span>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
-            <LoginModal />
-          </DialogContent>
-        </Dialog>
-      </p>
+      <Dialog open={showLogin} onOpenChange={setShowLogin}>
+        <DialogContent className="sm:max-w-md">
+          <LoginModal />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
