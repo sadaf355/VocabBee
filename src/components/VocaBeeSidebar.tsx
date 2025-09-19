@@ -27,13 +27,20 @@ const sidebarItems = [
     title: "Learning Module", 
     icon: BookOpen,
     subItems: [
-      { title: "Grammar Essentials", url: "/modules/grammar-levels" },
-      { title: "Professional Communication", url: "/modules/communication-levels" },
-      { title: "Vocabulary Builder", url: "/modules/vocabulary-levels" },
-      { title: "Pronunciation Practice", url: "/modules/pronunciation-levels" }
+      { title: "Grammar", url: "/modules/grammar-levels" },
+      { title: "Communication", url: "/modules/communication-levels" },
+      { title: "Vocabulary ", url: "/modules/vocabulary-levels" },
+      { title: "Resume/Email", url: "/modules/pronunciation-levels" }
     ]
   },
-  { title: "LSRW Module", url: "/lsrw-modules", icon: Headphones },
+  { title: "LSRW Module",
+    icon: Headphones,
+  subItems: [
+      { title: "Listening", url: "/modules/grammar-levels" },
+      { title: "Reading", url: "/modules/communication-levels" },
+      { title: "Speaking", url: "/modules/vocabulary-levels" },
+      { title: "Writing", url: "/modules/pronunciation-levels" }
+    ] },
   { title: "Interview Toolkit", url: "/interview", icon: Briefcase },
   { title: "Daily Challenges", url: "/challenges", icon: Trophy },
   { title: "FluencyBot", url: "/fluencybot", icon: Bot },

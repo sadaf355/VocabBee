@@ -25,7 +25,7 @@ const modules = [
     icon: TrendingUp,
     title: "Progress Tracking",
     description: "Monitor your learning journey",
-    color: "bg-gradient-accent"
+    color: "bg-gradient-sage"
   }
 ];
 

@@ -86,14 +86,14 @@ const GrammarLevels = () => {
                     <CardTitle className="text-lg">{level.title}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <CardDescription className="text-sm">
+                    <CardDescription className="text-sm whitespace-normal min-h-[48px]">
                       {level.description}
                     </CardDescription>
                     <Link to={`/modules/grammar/${level.id}`}>
                       <Button 
                         variant="outline" 
                         size="sm"
-                        className="w-full bg-primary/5 text-primary border-primary/20 hover:bg-primary hover:text-primary-foreground"
+                        className="w-full bg-primary text-primary-foreground border-primary/20 hover:bg-primary/5 hover:text-primary"
                       >
                         Start Level
                       </Button>

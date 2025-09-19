@@ -1,233 +1,176 @@
+import React, { useRef, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { VocaBeeSidebar } from "@/components/VocaBeeSidebar";
-import { 
-  ArrowLeft, 
-  Play, 
-  Pause,
-  Volume2,
-  Clock,
-  CheckCircle
-} from "lucide-react";
-import { Link } from "react-router-dom";
-import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Play, Pause, Volume2, CheckCircle } from "lucide-react";
+import { audioQuizzes, Question } from "@/data/i1data";
 
-const IntermediateL1Listening = () => {
+const IntermediateL1Listening: React.FC = () => {
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentQuestion, setCurrentQuestion] = useState(1);
-  const [answers, setAnswers] = useState<{[key: number]: string}>({});
+  const [audioEnded, setAudioEnded] = useState(false);
+  const [currentQ, setCurrentQ] = useState(0);
+  const [selectedAnswers, setSelectedAnswers] = useState<{ [key: number]: number }>({});
+  const [score, setScore] = useState<number | null>(null);
+  const [quiz, setQuiz] = useState<{ audio: string; questions: Question[] } | null>(null);
 
-  const totalQuestions = 2;
-  const progress = (currentQuestion / totalQuestions) * 100;
+  // timer state
+  const [timeLeft, setTimeLeft] = useState<number | null>(null);
 
-  const questions = [
-    {
-      id: 1,
-      title: "What is the main topic of the business presentation?",
-      options: [
-        { id: "A", text: "Quarterly sales report" },
-        { id: "B", text: "New product launch" },
-        { id: "C", text: "Market analysis" },
-        { id: "D", text: "Budget planning" }
-      ]
-    },
-    {
-      id: 2,
-      title: "According to the speaker, what is the projected growth rate?",
-      options: [
-        { id: "A", text: "15%" },
-        { id: "B", text: "20%" },
-        { id: "C", text: "25%" },
-        { id: "D", text: "30%" }
-      ]
+  // Pick random audio + questions on load
+  useEffect(() => {
+    const randomIndex = Math.floor(Math.random() * audioQuizzes.length);
+    setQuiz(audioQuizzes[randomIndex]);
+  }, []);
+
+  // countdown effect
+  useEffect(() => {
+    if (timeLeft === null || timeLeft <= 0 || score !== null) return;
+
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => (prev !== null ? prev - 1 : prev));
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [timeLeft, score]);
+
+  // auto submit when timer hits 0
+  useEffect(() => {
+    if (timeLeft === 0) {
+      handleSubmit();
     }
-  ];
+  }, [timeLeft]);
 
-  const currentQuestionData = questions[currentQuestion - 1];
+  const handleOptionSelect = (id: number, idx: number) => {
+    if (!audioEnded) return; // 🚫 block selection until audio finished
+    setSelectedAnswers((prev) => ({ ...prev, [id]: idx }));
+  };
 
   const handleNext = () => {
-    if (currentQuestion < totalQuestions) {
-      setCurrentQuestion(currentQuestion + 1);
+    if (!quiz) return;
+    if (currentQ < quiz.questions.length - 1) {
+      setCurrentQ((prev) => prev + 1);
+    } else {
+      handleSubmit();
     }
-  };
-
-  const handlePrevious = () => {
-    if (currentQuestion > 1) {
-      setCurrentQuestion(currentQuestion - 1);
-    }
-  };
-
-  const handleAnswerChange = (value: string) => {
-    setAnswers({
-      ...answers,
-      [currentQuestion]: value
-    });
   };
 
   const handleSubmit = () => {
-    console.log("Submitted answers:", answers);
-    // TODO: Process answers and show results
+    if (!quiz) return;
+    let calculatedScore = 0;
+    quiz.questions.forEach((q) => {
+      if (selectedAnswers[q.id] === q.answer) calculatedScore++;
+    });
+    setScore(calculatedScore);
   };
 
+  if (!quiz) return <div>Loading quiz...</div>;
+
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background">
-        <VocaBeeSidebar />
-        
-        <main className="flex-1">
-          {/* Header */}
-          <header className="h-16 border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
-            <div className="container mx-auto px-4 h-full flex items-center gap-4">
-              <SidebarTrigger />
-              <Link to="/lsrw/listening-levels">
-                <Button variant="ghost" size="sm" className="gap-2">
-                  <ArrowLeft className="w-4 h-4" />
-                  Back
-                </Button>
-              </Link>
-              <div>
-                <h1 className="text-xl font-bold text-foreground">Business Conversations</h1>
-                <Badge variant="secondary" className="mt-1">Intermediate L1</Badge>
-              </div>
+    <div className="container mx-auto p-6">
+      {/* Audio Section */}
+      <Card className="mb-6">
+        <CardHeader className="flex items-center gap-3">
+          <Volume2 className="w-6 h-6 text-primary" />
+          <CardTitle>Listen to the Audio</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <audio
+                ref={audioRef}
+                src={quiz.audio}
+                onEnded={() => {
+                  setAudioEnded(true);
+                  setIsPlaying(false);
+                  setTimeLeft(60); // ⏳ start 1-minute timer
+                }}
+              />
+              <Button
+                onClick={() => {
+                  if (!audioRef.current) return;
+                  if (!isPlaying && !audioEnded) {
+                    audioRef.current.play();
+                    setIsPlaying(true);
+                  } else if (isPlaying) {
+                    audioRef.current.pause();
+                    setIsPlaying(false);
+                  }
+                }}
+                disabled={audioEnded} // 🔒 disable once audio is finished
+              >
+                {isPlaying ? <Pause className="w-5 h-5 mr-2" /> : <Play className="w-5 h-5 mr-2" />}
+                {isPlaying ? "Pause" : audioEnded ? "Played" : "Play"}
+              </Button>
             </div>
-          </header>
-
-          <div className="container mx-auto px-6 py-8 max-w-4xl">
-            {/* Progress Bar */}
-            <div className="mb-8">
-              <div className="flex justify-between text-sm text-muted-foreground mb-2">
-                <span>Question {currentQuestion} of {totalQuestions}</span>
-                <span>{Math.round(progress)}% Complete</span>
-              </div>
-              <Progress value={progress} className="h-2" />
-            </div>
-
-            {/* Audio Exercise Section */}
-            <Card className="mb-8">
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <Volume2 className="w-6 h-6 text-primary" />
-                  <div>
-                    <CardTitle>Audio Exercise</CardTitle>
-                    <CardDescription>Listen carefully and answer the questions below</CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="bg-muted/30 rounded-lg p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <Button
-                      variant="outline"
-                      size="lg"
-                      onClick={() => setIsPlaying(!isPlaying)}
-                      className="gap-2"
-                    >
-                      {isPlaying ? (
-                        <>
-                          <Pause className="w-5 h-5" />
-                          Pause
-                        </>
-                      ) : (
-                        <>
-                          <Play className="w-5 h-5" />
-                          Play
-                        </>
-                      )}
-                    </Button>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Clock className="w-4 h-4" />
-                      <span>7 min</span>
-                    </div>
-                  </div>
-                  
-                  {/* Audio Progress Bar */}
-                  <div className="w-full bg-border rounded-full h-2">
-                    <div 
-                      className="bg-gradient-primary h-2 rounded-full transition-all duration-300" 
-                      style={{ width: isPlaying ? '45%' : '0%' }}
-                    ></div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Comprehension Questions */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Comprehension Questions</CardTitle>
-                <CardDescription>Choose the best answer for each question</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Current Question */}
-                <div>
-                  <h3 className="text-lg font-semibold text-foreground mb-4">
-                    {currentQuestion}. {currentQuestionData.title}
-                  </h3>
-                  
-                  <RadioGroup 
-                    value={answers[currentQuestion] || ""} 
-                    onValueChange={handleAnswerChange}
-                    className="space-y-3"
-                  >
-                    {currentQuestionData.options.map((option) => (
-                      <div key={option.id} className="flex items-center space-x-3">
-                        <RadioGroupItem 
-                          value={option.id} 
-                          id={`option-${option.id}`}
-                          className="border-2"
-                        />
-                        <Label 
-                          htmlFor={`option-${option.id}`}
-                          className="text-sm font-medium cursor-pointer flex-1 py-2"
-                        >
-                          <span className="font-semibold mr-2">{option.id})</span>
-                          {option.text}
-                        </Label>
-                      </div>
-                    ))}
-                  </RadioGroup>
-                </div>
-
-                {/* Navigation Buttons */}
-                <div className="flex justify-between pt-6 border-t border-border">
-                  <Button 
-                    variant="outline" 
-                    onClick={handlePrevious}
-                    disabled={currentQuestion === 1}
-                  >
-                    Previous
-                  </Button>
-                  
-                  {currentQuestion < totalQuestions ? (
-                    <Button 
-                      onClick={handleNext}
-                      disabled={!answers[currentQuestion]}
-                      className="bg-gradient-primary text-primary-foreground border-0 hover:bg-gradient-secondary"
-                    >
-                      Next Question
-                    </Button>
-                  ) : (
-                    <Button 
-                      onClick={handleSubmit}
-                      disabled={!answers[currentQuestion]}
-                      className="bg-gradient-success text-white border-0 hover:opacity-90"
-                    >
-                      <CheckCircle className="w-4 h-4 mr-2" />
-                      Submit Answers
-                    </Button>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+            {/* Timer */}
+            {audioEnded && score === null && (
+              <span className="text-lg font-semibold text-red-600">
+                ⏱ {timeLeft}s
+              </span>
+            )}
           </div>
-        </main>
-      </div>
-    </SidebarProvider>
+        </CardContent>
+      </Card>
+
+      {/* Question Section */}
+      {score === null ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Question {quiz.questions[currentQ].id}</CardTitle>
+            <CardDescription>Answer the following question:</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="mb-4">{quiz.questions[currentQ].question}</p>
+            <div className="space-y-3">
+              {quiz.questions[currentQ].options.map((opt, idx) => (
+                <label
+                  key={idx}
+                  className={`flex items-center gap-2 p-2 border rounded cursor-pointer ${
+                    selectedAnswers[quiz.questions[currentQ].id] === idx
+                      ? "bg-primary/10 border-primary"
+                      : ""
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name={`q-${quiz.questions[currentQ].id}`}
+                    checked={selectedAnswers[quiz.questions[currentQ].id] === idx}
+                    onChange={() => handleOptionSelect(quiz.questions[currentQ].id, idx)}
+                    disabled={!audioEnded} // 🚫 disable until audio ends
+                  />
+                  {opt}
+                </label>
+              ))}
+            </div>
+            <div className="flex justify-end mt-6">
+              <Button
+                onClick={handleNext}
+                disabled={
+                  !audioEnded ||
+                  selectedAnswers[quiz.questions[currentQ].id] == null
+                }
+              >
+                {currentQ < quiz.questions.length - 1 ? "Next" : (
+                  <>
+                    <CheckCircle className="w-4 h-4 mr-2" /> Submit
+                  </>
+                )}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardHeader>
+            <CardTitle>Your Score</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="mb-4">You scored {score} out of {quiz.questions.length}!</p>
+            <Button onClick={() => window.location.reload()}>Try Again</Button>
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 };
 

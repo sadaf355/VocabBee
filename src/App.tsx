@@ -7,7 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 // Pages
 import Index from "./pages/Index";
 import Onboarding from "./pages/Onboarding";
-import AssessmentQuiz from "./pages/AssessmentQuiz";
+import { Assessment } from './pages/AssessmentQuiz';
 import Dashboard from "./pages/Dashboard";
 import ContactUs from "./pages/ContactUs";
 import Settings from "./pages/Settings";
@@ -49,6 +49,7 @@ import NotFound from "./pages/NotFound";
 
 // Context
 import { UserProvider } from "./context/UserContext";
+import { LanguageProvider } from "./context/languageContext"; // ✅ NEW
 
 const queryClient = new QueryClient();
 
@@ -58,66 +59,68 @@ const App = () => (
       <Toaster />
       <Sonner />
       <UserProvider>
-        <BrowserRouter>
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<Index />} />
+        <LanguageProvider> {/* ✅ Wrap the whole app */}
+          <BrowserRouter>
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/" element={<Index />} />
 
-            {/* Onboarding / Assessment */}
-            <Route path="/onboarding" element={<Onboarding />} />
-            <Route path="/assessment" element={<AssessmentQuiz />} />
+              {/* Onboarding / Assessment */}
+              <Route path="/onboarding" element={<Onboarding />} />
+              <Route path="/assessment" element={<Assessment />} />
 
-            {/* User Dashboard */}
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/contact" element={<ContactUs />} />
-            <Route path="/settings" element={<Settings />} />
+              {/* User Dashboard */}
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/contact" element={<ContactUs />} />
+              <Route path="/settings" element={<Settings />} />
 
-            {/* Grammar Modules */}
-            <Route path="/modules/grammar-levels" element={<GrammarLevels />} />
-            <Route path="/modules/grammar/basic" element={<BasicGrammar />} />
-            <Route path="/modules/grammar/intermediate-l1" element={<IntermediateL1Grammar />} />
-            <Route path="/modules/grammar/intermediate-l2" element={<IntermediateL2Grammar />} />
-            <Route path="/modules/grammar/expert-l1" element={<ExpertL1Grammar />} />
-            <Route path="/modules/grammar/expert-l2" element={<ExpertL2Grammar />} />
-            <Route path="/modules/grammar/proficient" element={<ProficientGrammar />} />
-            <Route path="/modules/grammar/basic/quiz/:topic" element={<GrammarQuiz />} />
-            <Route path="/modules/grammar/intermediate-l1/quiz/:topic" element={<GrammarQuiz />} />
-            <Route path="/modules/grammar/intermediate-l2/quiz/:topic" element={<GrammarQuiz />} />
-            <Route path="/modules/grammar/expert-l1/quiz/:topic" element={<GrammarQuiz />} />
-            <Route path="/modules/grammar/expert-l2/quiz/:topic" element={<GrammarQuiz />} />
-            <Route path="/modules/grammar/proficient/quiz/:topic" element={<GrammarQuiz />} />
+              {/* Grammar Modules */}
+              <Route path="/modules/grammar-levels" element={<GrammarLevels />} />
+              <Route path="/modules/grammar/basic" element={<BasicGrammar />} />
+              <Route path="/modules/grammar/intermediate-l1" element={<IntermediateL1Grammar />} />
+              <Route path="/modules/grammar/intermediate-l2" element={<IntermediateL2Grammar />} />
+              <Route path="/modules/grammar/expert-l1" element={<ExpertL1Grammar />} />
+              <Route path="/modules/grammar/expert-l2" element={<ExpertL2Grammar />} />
+              <Route path="/modules/grammar/proficient" element={<ProficientGrammar />} />
+              <Route path="/modules/grammar/basic/quiz/:topic" element={<GrammarQuiz />} />
+              <Route path="/modules/grammar/intermediate-l1/quiz/:topic" element={<GrammarQuiz />} />
+              <Route path="/modules/grammar/intermediate-l2/quiz/:topic" element={<GrammarQuiz />} />
+              <Route path="/modules/grammar/expert-l1/quiz/:topic" element={<GrammarQuiz />} />
+              <Route path="/modules/grammar/expert-l2/quiz/:topic" element={<GrammarQuiz />} />
+              <Route path="/modules/grammar/proficient/quiz/:topic" element={<GrammarQuiz />} />
 
-            {/* Vocabulary Modules */}
-            <Route path="/modules/vocabulary-levels" element={<VocabularyLevels />} />
-            <Route path="/modules/vocabulary/basic" element={<BasicVocabulary />} />
+              {/* Vocabulary Modules */}
+              <Route path="/modules/vocabulary-levels" element={<VocabularyLevels />} />
+              <Route path="/modules/vocabulary/basic" element={<BasicVocabulary />} />
 
-            {/* Communication Modules */}
-            <Route path="/modules/communication-levels" element={<CommunicationLevels />} />
-            <Route path="/modules/communication/basic" element={<BasicCommunication />} />
+              {/* Communication Modules */}
+              <Route path="/modules/communication-levels" element={<CommunicationLevels />} />
+              <Route path="/modules/communication/basic" element={<BasicCommunication />} />
 
-            {/* Listening Modules */}
-            <Route path="/lsrw/listening" element={<ListeningLevels />} />
-            <Route path="/lsrw/listening-levels" element={<ListeningLevels />} />
-            <Route path="/lsrw/listening/basic" element={<BasicListening />} />
-            <Route path="/lsrw/listening/intermediate-l1" element={<IntermediateL1Listening />} />
-            <Route path="/lsrw/listening/intermediate-l2" element={<IntermediateL2Listening />} />
-            <Route path="/lsrw/listening/expert-l1" element={<ExpertL1Listening />} />
-            <Route path="/lsrw/listening/expert-l2" element={<ExpertL2Listening />} />
-            <Route path="/lsrw/listening/proficient" element={<ProficientListening />} />
+              {/* Listening Modules */}
+              <Route path="/lsrw/listening" element={<ListeningLevels />} />
+              <Route path="/lsrw/listening-levels" element={<ListeningLevels />} />
+              <Route path="/lsrw/listening/basic" element={<BasicListening />} />
+              <Route path="/lsrw/listening/intermediate-l1" element={<IntermediateL1Listening />} />
+              <Route path="/lsrw/listening/intermediate-l2" element={<IntermediateL2Listening />} />
+              <Route path="/lsrw/listening/expert-l1" element={<ExpertL1Listening />} />
+              <Route path="/lsrw/listening/expert-l2" element={<ExpertL2Listening />} />
+              <Route path="/lsrw/listening/proficient" element={<ProficientListening />} />
 
-            {/* Reading Modules */}
-            <Route path="/lsrw/reading-levels" element={<ReadingLevels />} />
-            <Route path="/lsrw/reading/basic" element={<BasicReading />} />
-            <Route path="/lsrw/reading/intermediate-l1" element={<IntermediateL1Reading />} />
-            <Route path="/lsrw/reading/intermediate-l2" element={<IntermediateL2Reading />} />
-            <Route path="/lsrw/reading/expert-l1" element={<ExpertL1Reading />} />
-            <Route path="/lsrw/reading/expert-l2" element={<ExpertL2Reading />} />
-            <Route path="/lsrw/reading/proficient" element={<ProficientReading />} />
+              {/* Reading Modules */}
+              <Route path="/lsrw/reading-levels" element={<ReadingLevels />} />
+              <Route path="/lsrw/reading/basic" element={<BasicReading />} />
+              <Route path="/lsrw/reading/intermediate-l1" element={<IntermediateL1Reading />} />
+              <Route path="/lsrw/reading/intermediate-l2" element={<IntermediateL2Reading />} />
+              <Route path="/lsrw/reading/expert-l1" element={<ExpertL1Reading />} />
+              <Route path="/lsrw/reading/expert-l2" element={<ExpertL2Reading />} />
+              <Route path="/lsrw/reading/proficient" element={<ProficientReading />} />
 
-            {/* Catch-All */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
+              {/* Catch-All */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </LanguageProvider>
       </UserProvider>
     </TooltipProvider>
   </QueryClientProvider>

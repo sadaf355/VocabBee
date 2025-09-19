@@ -13,7 +13,7 @@ const features = [
 		icon: <Clock className="w-8 h-8 text-white" />,
 		title: "Flexible Schedule",
 		description: "Learn at your own pace with 24/7 access to all materials",
-		color: "bg-gradient-accent",
+		color: "bg-gradient-sage",
 	},
 	{
 		icon: <Shield className="w-8 h-8 text-white" />,

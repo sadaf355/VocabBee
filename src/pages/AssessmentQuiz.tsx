@@ -1,109 +1,179 @@
-import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Progress } from "@/components/ui/progress";
+import { useState, useEffect } from "react";
+import { useLanguage } from "@/context/languageContext";
+import { useOnboarding, Level } from "@/context/OnboardingContext";
 import { Button } from "@/components/ui/button";
-import { Clock, CheckCircle, ArrowRight } from "lucide-react";
-import { useUser } from "../context/UserContext";
+import { Card, CardContent } from "@/components/ui/card";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { ArrowRight, Clock } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { getRandomQuestionsForLevel, type Question } from "@/data/quizData";
 
-const AssessmentQuiz = () => {
-  const { user } = useUser();
+export const Assessment= () => {
+  const { t } = useLanguage();
+  const { data } = useOnboarding();
+  const navigate = useNavigate();
+  const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [answers, setAnswers] = useState<string[]>([]);
-  const [selectedAnswer, setSelectedAnswer] = useState("");
+  const [selectedAnswers, setSelectedAnswers] = useState<number[]>(new Array(10).fill(-1));
+  const [timeRemaining, setTimeRemaining] = useState(120);
 
-  const questions = [
-    { question: "Choose the correct sentence:", options: ["I am working in this company since 2020.","I have been working in this company since 2020.","I work in this company since 2020.","I was working in this company since 2020."], correct: 1 },
-    { question: "What is the meaning of 'debugging' in programming?", options: ["Writing new code","Finding and fixing errors in code","Deleting old code","Running the program"], correct: 1 },
-    { question: "Choose the most professional way to start an email:", options: ["Hey there!","Hi buddy,","Dear Sir/Madam,","Yo!"], correct: 2 },
-    { question: "Which pronunciation is correct for 'schedule'?", options: ["/ˈʃedjuːl/ (SHED-yool)","/ˈskedʒuːl/ (SKED-jool)","Both are correct","None of the above"], correct: 2 },
-    { question: "In technical writing, which is preferred?", options: ["The system works good","The system works well","The system is working good","The system work well"], correct: 1 },
-    { question: "What does 'scalable' mean in technology?", options: ["Something that can be weighed","Something that can grow or expand efficiently","Something that is small","Something that is expensive"], correct: 1 },
-    { question: "Choose the correct passive voice:", options: ["The bug was fixed by the developer","The developer fixed the bug","The bug fixed by the developer","The developer was fixing the bug"], correct: 0 },
-    { question: "Which is the most formal closing for a business email?", options: ["Cheers!","Thanks!","Sincerely,","Bye!"], correct: 2 },
-    { question: "What is the correct pronunciation of 'algorithm'?", options: ["/ˈælɡərɪðəm/ (AL-guh-ri-thuhm)","/ˈeɪlɡərɪðəm/ (AYL-guh-ri-thuhm)","/ˈælɡoʊrɪðəm/ (AL-go-ri-thuhm)","All are correct"], correct: 0 },
-    { question: "In a presentation, which phrase is most professional?", options: ["I think maybe this might work","This solution will definitely work","This approach appears to be effective","I guess this is okay"], correct: 2 }
-  ];
+  useEffect(() => {
+    if (data.comfortLevel) {
+      // Cast comfortLevel to Level type for type safety
+      const level = data.comfortLevel as Level;
+      const randomQuestions = getRandomQuestionsForLevel(level, 10);
+      setQuestions(randomQuestions);
+    }
+  }, [data.comfortLevel]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeRemaining((prev) => {
+        if (prev <= 1) {
+          handleCompleteQuiz();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
 
   const progress = ((currentQuestion + 1) / questions.length) * 100;
+  const minutes = Math.floor(timeRemaining / 60);
+  const seconds = timeRemaining % 60;
 
-  const handleNext = () => {
-    if (!selectedAnswer) return;
-    const newAnswers = [...answers];
-    newAnswers[currentQuestion] = selectedAnswer;
-    setAnswers(newAnswers);
-
-    if (currentQuestion < questions.length - 1) {
-      setCurrentQuestion(currentQuestion + 1);
-      setSelectedAnswer("");
-    } else handleQuizComplete();
+  const handleAnswerSelect = (optionIndex: number) => {
+    const newAnswers = [...selectedAnswers];
+    newAnswers[currentQuestion] = optionIndex;
+    setSelectedAnswers(newAnswers);
   };
 
-  const handleQuizComplete = async () => {
-    if (!user) return alert("User not found. Please log in again.");
-
-    let score = 0;
-    answers.forEach((answer, i) => {
-      if (parseInt(answer) === questions[i].correct) score++;
-    });
-
-    try {
-      const res = await fetch("http://localhost:4000/api/assessed", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: user.email }),
-      });
-      if (!res.ok) return alert("Failed to mark assessment");
-
-      alert(`Quiz completed! Your score: ${score}/${questions.length}`);
-    } catch {
-      alert("Network error. Please try again.");
+  const handleNext = () => {
+    if (currentQuestion < questions.length - 1) {
+      setCurrentQuestion((prev) => prev + 1);
     }
   };
 
+  const handlePrevious = () => {
+    if (currentQuestion > 0) {
+      setCurrentQuestion((prev) => prev - 1);
+    }
+  };
+
+const handleCompleteQuiz = () => {
+  let correctAnswers = 0;
+  selectedAnswers.forEach((answer, index) => {
+    if (answer === questions[index].correctAnswer) {
+      correctAnswers++;
+    }
+  });
+
+  const score = Math.round((correctAnswers / questions.length) * 100);
+  localStorage.setItem("assessmentScore", score.toString());           // Save score
+  localStorage.setItem("assessmentLevel", data.comfortLevel || "");    // Save level if desired
+  navigate("/dashboard");
+};
+
+  const isLastQuestion = currentQuestion === questions.length - 1;
+  const canProceed = selectedAnswers[currentQuestion] !== -1;
+
+  if (questions.length === 0) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading assessment...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-learning flex items-center justify-center p-4">
-      <div className="w-full max-w-3xl">
-        <div className="mb-8">
-          <div className="flex justify-between text-sm text-muted-foreground mb-2">
-            <span>Question {currentQuestion + 1} of {questions.length}</span>
-            <div className="flex items-center gap-2"><Clock className="w-4 h-4"/><span>~2 min remaining</span></div>
-          </div>
-          <Progress value={progress} className="h-3" />
+    <div className="min-h-screen bg-background py-8 px-4">
+      <div className="max-w-4xl mx-auto">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-foreground mb-4">{t("assessment.title")}</h1>
+          <p className="text-lg text-muted-foreground">{t("assessment.subtitle")}</p>
         </div>
 
-        <Card className="shadow-card border-border/50">
-          <CardHeader>
-            <CardTitle>{questions[currentQuestion].question}</CardTitle>
-            <CardDescription>Choose the best answer from the options below</CardDescription>
-          </CardHeader>
+        <div className="mb-8">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-sm font-medium text-muted-foreground">
+              {t("assessment.question")} {currentQuestion + 1} {t("onboarding.of")} {questions.length}
+            </span>
+            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <Clock className="h-4 w-4" />
+              ~{minutes}:{seconds.toString().padStart(2, "0")} {t("assessment.remaining")}
+            </div>
+          </div>
+          <div className="w-full bg-muted rounded-full h-2">
+            <div
+              className="bg-gradient-to-r from-primary to-accent h-2 rounded-full transition-all duration-300"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+        </div>
 
-          <CardContent className="space-y-6">
-            <RadioGroup value={selectedAnswer} onValueChange={setSelectedAnswer}>
-              {questions[currentQuestion].options.map((option, i) => (
-                <div key={i} className="flex items-center space-x-3 p-4 rounded-lg border border-border hover:bg-accent transition-colors">
-                  <RadioGroupItem value={i.toString()} id={`option-${i}`} />
-                  <Label htmlFor={`option-${i}`} className="flex-1 cursor-pointer">{option}</Label>
+        <Card className="w-full max-w-4xl mx-auto shadow-sm border border-border mb-8">
+          <CardContent className="p-8">
+            <h2 className="text-2xl font-bold text-foreground mb-2">{questions[currentQuestion].question}</h2>
+            <p className="text-muted-foreground mb-6">Choose the best answer from the options below</p>
+
+            <RadioGroup
+              value={selectedAnswers[currentQuestion]?.toString()}
+              onValueChange={(value) => handleAnswerSelect(parseInt(value))}
+              className="space-y-4"
+            >
+              {questions[currentQuestion].options.map((option, index) => (
+                <div
+                  key={index}
+                  className="flex items-center space-x-3 p-4 rounded-lg border border-border hover:bg-muted/50 transition-colors cursor-pointer"
+                  onClick={() => handleAnswerSelect(index)}
+                >
+                  <RadioGroupItem value={index.toString()} id={`option-${index}`} />
+                  <Label htmlFor={`option-${index}`} className="flex-1 cursor-pointer text-base">
+                    {option}
+                  </Label>
                 </div>
               ))}
             </RadioGroup>
-
-            <div className="flex justify-between pt-6">
-              <Button variant="outline" disabled={currentQuestion === 0} onClick={() => {
-                setCurrentQuestion(currentQuestion - 1);
-                setSelectedAnswer(answers[currentQuestion - 1] || "");
-              }}>Previous</Button>
-
-              <Button variant="hero" onClick={handleNext} disabled={!selectedAnswer}>
-                {currentQuestion === questions.length - 1 ? <>Complete Quiz <CheckCircle className="w-4 h-4 ml-2"/></> : <>Next Question <ArrowRight className="w-4 h-4 ml-2"/></>}
-              </Button>
-            </div>
           </CardContent>
         </Card>
+
+        <div className="flex justify-between items-center">
+          <Button
+            variant="ghost"
+            onClick={handlePrevious}
+            disabled={currentQuestion === 0}
+            className="text-muted-foreground"
+          >
+            {t("assessment.previous")}
+          </Button>
+
+          {isLastQuestion ? (
+            <Button
+              onClick={handleCompleteQuiz}
+              disabled={!canProceed}
+              className="bg-primary hover:bg-primary-light text-primary-foreground font-medium px-6 py-2 rounded-full"
+            >
+              {t("assessment.completeQuiz")}
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          ) : (
+            <Button
+              onClick={handleNext}
+              disabled={!canProceed}
+              className="bg-primary hover:bg-primary-light text-primary-foreground font-medium px-6 py-2 rounded-full"
+            >
+              {t("assessment.nextQuestion")}
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );
 };
-
-export default AssessmentQuiz;

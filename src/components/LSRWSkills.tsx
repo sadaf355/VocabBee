@@ -30,7 +30,7 @@ const skills = [
 		title: "Writing Skills",
 		description:
 			"Master professional writing, emails, and technical documentation",
-		color: "bg-gradient-accent",
+		color: "bg-gradient-sage",
 	},
 ];
 

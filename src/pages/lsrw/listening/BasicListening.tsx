@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Play, Pause, Volume2, CheckCircle } from "lucide-react";
-import { audioQuizzes, Question } from "@/data/questions";
+import { audioQuizzes, Question } from "@/data/bdata";
 
 const BasicListening: React.FC = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
